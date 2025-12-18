@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Analisis Kompleksitas Algoritma</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <h1>Analisis Kompleksitas Algoritma</h1>
+    <p>Iteratif vs Rekursif (Golang)</p>
+
+    <div class="box">
+        <textarea id="nilai" placeholder="Masukkan nilai ujian (contoh: 80,75,90,60)"></textarea>
+        <button onclick="proses()">Proses</button>
+    </div>
+
+    <h2>Hasil</h2>
+
+    <table>
+        <tr>
+            <th>Metode</th>
+            <th>Rata-rata</th>
+            <th>Running Time (ns)</th>
+        </tr>
+        <tr>
+            <td>Iteratif</td>
+            <td id="rataIter">-</td>
+            <td id="timeIter">-</td>
+        </tr>
+        <tr>
+            <td>Rekursif</td>
+            <td id="rataRek">-</td>
+            <td id="timeRek">-</td>
+        </tr>
+    </table>
+
+    <canvas id="chart"></canvas>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
