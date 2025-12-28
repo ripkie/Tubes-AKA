@@ -1,100 +1,44 @@
 package main
 
-import (
-	"encoding/json"
-	"net/http"
-	"time"
-)
+import "fmt"
 
-/*
-===============================
+const NMAX = 40
 
-	ITERATIF
-	===============================
-*/
-func jumlahIteratif(data []int) int {
+/* ITERATIF */
+func iteratif(nilai [NMAX]int, n int) float64 {
 	total := 0
-	for i := 0; i < len(data); i++ {
-		total += data[i]
+
+	for i := 0; i < n; i++ {
+		total = total + nilai[i]
 	}
-	return total
+
+	return float64(total) / float64(n)
 }
 
-/*
-===============================
-
-	REKURSIF
-	===============================
-*/
-func jumlahRekursif(data []int, n int) int {
+/* REKURSIF*/
+func rekursif(nilai [NMAX]int, n int) int {
 	if n == 0 {
 		return 0
 	}
-	return data[n-1] + jumlahRekursif(data, n-1)
-}
 
-/*
-===============================
-
-	REQUEST & RESPONSE
-	===============================
-*/
-type Request struct {
-	Nilai []int `json:"nilai"`
-}
-
-type Response struct {
-	JumlahData int     `json:"jumlah_data"`
-	RataIter   float64 `json:"rata_iteratif"`
-	RataRek    float64 `json:"rata_rekursif"`
-	TimeIter   int64   `json:"time_iteratif"`
-	TimeRek    int64   `json:"time_rekursif"`
-}
-
-/*
-===============================
-
-	HANDLER
-	===============================
-*/
-func prosesHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	var req Request
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil || len(req.Nilai) == 0 {
-		http.Error(w, "Input tidak valid", http.StatusBadRequest)
-		return
-	}
-
-	n := len(req.Nilai)
-
-	startIter := time.Now()
-	totalIter := jumlahIteratif(req.Nilai)
-	tIter := time.Since(startIter).Nanoseconds()
-
-	startRek := time.Now()
-	totalRek := jumlahRekursif(req.Nilai, n)
-	tRek := time.Since(startRek).Nanoseconds()
-
-	resp := Response{
-		JumlahData: n,
-		RataIter:   float64(totalIter) / float64(n),
-		RataRek:    float64(totalRek) / float64(n),
-		TimeIter:   tIter,
-		TimeRek:    tRek,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	return nilai[n-1] + rekursif(nilai, n-1)
 }
 
 func main() {
-	http.Handle("/", http.FileServer(http.Dir("./public")))
-	http.HandleFunc("/proses", prosesHandler)
+	var nilai [NMAX]int
+	n := 0
 
-	http.ListenAndServe(":8080", nil)
+	fmt.Print("Masukkan jumlah mahasiswa (maks 40): ")
+	fmt.Scan(&n)
+
+	for i := 0; i < n; i++ {
+		fmt.Print("Masukkan nilai mahasiswa ke-", i+1, ": ")
+		fmt.Scan(&nilai[i])
+	}
+
+	fmt.Println("\n=== ITERATIF ===")
+	fmt.Println("Rata-rata nilai:", iteratif(nilai, n))
+
+	fmt.Println("\n=== REKURSIF ===")
+	fmt.Println("Rata-rata nilai:", float64(rekursif(nilai, n))/float64(n))
 }

@@ -1,63 +1,78 @@
-let chart;
+let chart = null;
 
-function proses() {
-    const input = document.getElementById("nilai").value.trim();
+function hitung() {
+    const n = parseInt(document.getElementById("n").value);
+    const nilaiInput = document.getElementById("nilai").value;
 
-    if (input === "") {
-        alert("Nilai tidak boleh kosong!");
+    const nilai = nilaiInput.split(",").map(Number);
+
+    if (nilai.length < n) {
+        alert("Jumlah nilai tidak sesuai dengan n!");
         return;
     }
 
-    const nilai = input
-        .split(",")
-        .map(n => parseInt(n.trim()))
-        .filter(n => !isNaN(n)); // ⬅️ PENTING
-
-    if (nilai.length === 0) {
-        alert("Format salah! Contoh: 80,75,90");
-        return;
-    }
-
-    fetch("/proses", {
+    fetch("http://localhost:8080/hitung", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nilai: nilai })
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            n: n,
+            nilai: nilai
+        })
     })
-        .then(res => {
-            if (!res.ok) throw new Error("Server error");
-            return res.json();
-        })
+        .then(res => res.json())
         .then(data => {
+            document.getElementById("iteratif").innerText =
+                `Rata-rata Iteratif : ${data.rata_iteratif.toFixed(2)} 
+             (Waktu: ${data.waktu_iteratif} ns)`;
 
-            document.getElementById("rataIter").innerText =
-                data.rata_iteratif.toFixed(2);
+            document.getElementById("rekursif").innerText =
+                `Rata-rata Rekursif : ${data.rata_rekursif.toFixed(2)} 
+             (Waktu: ${data.waktu_rekursif} ns)`;
 
-            document.getElementById("rataRek").innerText =
-                data.rata_rekursif.toFixed(2);
-
-            document.getElementById("timeIter").innerText =
-                data.time_iteratif;
-
-            document.getElementById("timeRek").innerText =
-                data.time_rekursif;
-
-            const ctx = document.getElementById("chart");
-
-            if (chart) chart.destroy();
-
-            chart = new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: ["Iteratif", "Rekursif"],
-                    datasets: [{
-                        label: "Running Time (ns)",
-                        data: [data.time_iteratif, data.time_rekursif]
-                    }]
-                }
-            });
-        })
-        .catch(err => {
-            alert("Gagal memproses data!");
-            console.error(err);
+            tampilGrafik(n);
         });
+}
+
+function tampilGrafik(n) {
+    const ctx = document.getElementById("grafik");
+
+    let dataN = [];
+    let iteratif = [];
+    let rekursif = [];
+
+    for (let i = 1; i <= n; i++) {
+        dataN.push(i);
+        iteratif.push(i);   // O(n)
+        rekursif.push(i);   // O(n) + stack
+    }
+
+    if (chart) chart.destroy();
+
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dataN,
+            datasets: [
+                {
+                    label: 'Iteratif O(n)',
+                    data: iteratif,
+                    borderWidth: 2
+                },
+                {
+                    label: 'Rekursif O(n)',
+                    data: rekursif,
+                    borderWidth: 2
+                }
+            ]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            }
+        }
+    });
 }

@@ -3,44 +3,215 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Analisis Kompleksitas Algoritma</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grafik Kompleksitas O(n)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            width: 900px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        input {
+            padding: 10px;
+            width: 120px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .nilai-input {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .nilai-input input {
+            width: 80%;
+        }
+
+        .info {
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #2ecc71;
+        }
+
+        .chart-wrapper {
+            height: 400px;
+        }
+    </style>
 </head>
 
 <body>
 
-    <h1>Analisis Kompleksitas Algoritma</h1>
-    <p>Iteratif vs Rekursif (Golang)</p>
+    <div class="container">
 
-    <div class="box">
-        <textarea id="nilai" placeholder="Masukkan nilai ujian (contoh: 80,75,90,60)"></textarea>
-        <button onclick="proses()">Proses</button>
+        <div class="header">
+            <h2>Visualisasi Kompleksitas Waktu Algoritma</h2>
+            <p>Perhitungan Rata-Rata Nilai Mahasiswa</p>
+        </div>
+
+        <!-- INPUT N -->
+        <div class="input-group">
+            <label>Jumlah Mahasiswa (N):</label>
+            <input type="number" id="inputN" value="5" min="1" max="40">
+            <button onclick="updateData()">Proses</button>
+        </div>
+
+        <!-- INPUT NILAI MANUAL -->
+        <div class="nilai-input">
+            <p>Masukkan Nilai Mahasiswa (pisahkan dengan spasi)</p>
+            <input type="text" id="nilaiInput" placeholder="Contoh: 80 75 90 60 88">
+        </div>
+
+        <!-- HASIL RATA-RATA -->
+        <div class="info" id="labelAvg">
+            Rata-rata Nilai: -
+        </div>
+
+        <!-- GRAFIK -->
+        <div class="chart-wrapper">
+            <canvas id="lineChart"></canvas>
+        </div>
+
     </div>
 
-    <h2>Hasil</h2>
+    <script>
+        let myChart;
 
-    <table>
-        <tr>
-            <th>Metode</th>
-            <th>Rata-rata</th>
-            <th>Running Time (ns)</th>
-        </tr>
-        <tr>
-            <td>Iteratif</td>
-            <td id="rataIter">-</td>
-            <td id="timeIter">-</td>
-        </tr>
-        <tr>
-            <td>Rekursif</td>
-            <td id="rataRek">-</td>
-            <td id="timeRek">-</td>
-        </tr>
-    </table>
+        function updateData() {
+            const n = parseInt(document.getElementById("inputN").value);
+            const nilaiStr = document.getElementById("nilaiInput").value.trim();
 
-    <canvas id="chart"></canvas>
+            if (n > 40) {
+                alert("Maksimal N adalah 40");
+                return;
+            }
 
-    <script src="script.js"></script>
+            if (nilaiStr === "") {
+                alert("Masukkan nilai mahasiswa!");
+                return;
+            }
+
+            const nilai = nilaiStr.split(" ").map(Number);
+
+            if (nilai.length !== n) {
+                alert("Jumlah nilai harus sama dengan N");
+                return;
+            }
+
+            for (let i = 0; i < nilai.length; i++) {
+                if (isNaN(nilai[i])) {
+                    alert("Input harus berupa angka");
+                    return;
+                }
+            }
+
+            // HITUNG RATA-RATA (DATA, BUKAN GRAFIK)
+            let total = 0;
+            for (let i = 0; i < n; i++) {
+                total += nilai[i];
+            }
+
+            document.getElementById("labelAvg").innerText =
+                "Rata-rata Nilai: " + (total / n).toFixed(2);
+
+            // LABEL N
+            const labels = [];
+            for (let i = 1; i <= n; i++) {
+                labels.push(i);
+            }
+
+            // KOMPLEKSITAS WAKTU
+            const iteratif = labels.map(x => x);
+            const rekursif = labels.map(x => x * 1.2);
+
+            if (myChart) {
+                myChart.data.labels = labels;
+                myChart.data.datasets[0].data = iteratif;
+                myChart.data.datasets[1].data = rekursif;
+                myChart.update();
+            } else {
+                createChart(labels, iteratif, rekursif);
+            }
+        }
+
+        function createChart(labels, iterData, rekData) {
+            const ctx = document.getElementById("lineChart");
+            myChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: "Iteratif O(n)",
+                            data: iterData,
+                            borderWidth: 3,
+                            fill: false
+                        },
+                        {
+                            label: "Rekursif O(n) + overhead",
+                            data: rekData,
+                            borderWidth: 3,
+                            borderDash: [6, 6],
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: "Jumlah Data (n)" }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: "Jumlah Operasi / Waktu Relatif" }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+
 </body>
 
 </html>
